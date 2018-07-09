@@ -1,0 +1,77 @@
+@import url(normalize.css);
+body {
+  overflow: hidden; }
+
+.container {
+  font-family: "Microsoft JhengHei";
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto; }
+
+.imgTransition {
+  transition: top 0.75s;
+  -webkit-transition: top 0.75s;
+  -o-transition: top 0.75s; }
+
+.banner {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  max-width: 1200px; }
+  .banner > .wrap {
+    position: relative;
+    display: inline-block;
+    left: 50%; }
+    .banner > .wrap > img {
+      position: relative;
+      display: block;
+      left: -50%;
+      top: 0px; }
+    .banner > .wrap > .s {
+      display: none; }
+  .banner > .btn {
+    font-size: 13px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 2px 2px 2px 8px;
+    color: #a3a3a3;
+    background-color: #000;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 3px 0 0 0;
+    cursor: pointer; }
+    .banner > .btn:hover {
+      color: white; }
+      .banner > .btn:hover:after {
+        border-color: #fff transparent transparent transparent; }
+    .banner > .btn:after {
+      content: "";
+      display: inline-block;
+      width: 0;
+      height: 0;
+      margin: 2px;
+      border-style: solid;
+      border-width: 3px 3px 0px 3px;
+      border-color: #a3a3a3 transparent transparent transparent; }
+  .banner.transition {
+    transition: height 0.75s;
+    -webkit-transition: height 0.75s;
+    -o-transition: height 0.75s; }
+  .banner.closing, .banner.closed {
+    height: 80px; }
+    .banner.closing > .btn:hover:after, .banner.closed > .btn:hover:after {
+      border-color: transparent transparent #fff transparent; }
+    .banner.closing > .btn:after, .banner.closed > .btn:after {
+      border-width: 0 3px 3px 3px;
+      border-color: transparent transparent #a3a3a3 transparent; }
+    .banner.closing > .wrap .img, .banner.closed > .wrap .img {
+      top: -300px; }
+  .banner.opened {
+    height: 300px; }
+    .banner.opened .btn:after {
+      transform: rotate(180deg); }
+
+/*# sourceMappingURL=style.css.map */
