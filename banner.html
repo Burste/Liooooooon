@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>JS Bin</title>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<style>
+    *, *:before, *:after {
+        box-sizing: border-box;
+    }
+    html, body {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    a {
+        display: block;
+    }
+    .banner {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        max-width: 1200px;
+        width: 100%;
+        height: 300px;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+    .banner.closing, .banner.closed {
+        height: 80px;
+    }
+    .banner.closed img {
+        transform: translateY(-300px);
+    }
+    .banner.transition {
+        transition: height .8s;
+    }
+
+    .btn {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        line-height: 1;
+        padding: 4px;
+        color: #fff;
+        background-color: #000;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+<script type="text/javascript">
+    (function($) {
+        'use strict';
+        var ModuleName = 'banner';
+
+        var Module = function (ele, options) {
+            this.ele = ele;
+            this.$ele = $(ele);
+            this.option = options;
+            this.status = {
+                isOpen: false,
+                transitionDuration: 0,
+                transitionVal: '',
+                transitionTtimmer: 0
+            };
+            this.$btn = $('<div class="' + this.option.button.class + '"></div>');
+        };
+
+        Module.DEFAULTS = {
+            // 設定一開始是否為開或合
+            openAtStart: true, // [boolean] true | false
+            // 設定啟動後是否要自動開或合，若設為false，就不要自勳開合；若為true是馬上自動開合；若為數字是幾毫秒之後開合
+            autoToggle: true, // [boolean|number] true | false | 3000
+            // 設定收合展開按鈕
+            button: {
+                closeText: '收合', // [string]
+                openText: '展開', // [string]
+                class: 'btn' // [string]
+            },
+            // 設定模組在各狀態時的class
+            class: {
+                closed: 'closed', // [string]
+                closing: 'closing', // [string]
+                opened: 'opened', // [string]
+                opening: 'opening' // [string]
+            },
+            // 是否要有transition效果
+            transition: true,
+            // 當有transition時，要執行的callback function
+            whenTransition: function() {
+                console.log('whenTransition');
+            }
+        };
+
+        Module.prototype.init = function() {
+            var self = this;
+
+            self.addBtn();
+
+            if(!self.option.openAtStart) {
+                self.close();
+            } else {
+                self.open();
+            }
+
+            if(self.option.transition) {
+                setTimeout(function() {
+                    self.$ele.addClass('transition');
+                }, 0);
+                self.status.transitionDuration = 800;
+            } else {
+                self.status.transitionDuration = 0;
+            }
+
+            self.status.transitionTtimmer = self.status.transitionDuration / 100;
+
+            if(typeof self.option.autoToggle === 'boolean' && self.option.autoToggle) {
+                self.toggle();
+            } else if(typeof self.option.autoToggle === 'number') {
+                setTimeout(function() {
+                    self.toggle();
+                }, self.option.autoToggle);
+            }
+        };
+
+        Module.prototype.open = function() {
+            var self = this;
+
+            self.transitionCallback(true);
+
+            self.status.isOpen = true;
+
+            self.$ele.removeClass(self.option.class.closed);
+            self.$ele.addClass(self.option.class.opening);
+
+            setTimeout(function() {
+                self.$ele.removeClass(self.option.class.opening);
+                self.$ele.addClass(self.option.class.opened);
+                self.$btn.text(self.option.button.closeText);
+
+                clearInterval(self.status.transitionVal);
+            }, self.status.transitionDuration);
+        };
+
+        Module.prototype.close = function() {
+            var self = this;
+
+            self.transitionCallback(false);
+
+            self.status.isOpen = false;
+
+            self.$ele.removeClass(self.option.class.opened);
+            self.$ele.addClass(self.option.class.closing);
+
+            setTimeout(function() {
+                self.$ele.removeClass(self.option.class.closing);
+                self.$ele.addClass(self.option.class.closed);
+                self.$btn.text(self.option.button.openText);
+
+                clearInterval(self.status.transitionVal);
+            }, self.status.transitionDuration);
+        };
+
+        Module.prototype.toggle = function() {
+            if(this.status.isOpen) {
+                this.close();
+            } else {
+                this.open();
+            }
+        };
+
+        Module.prototype.addBtn = function() {
+            var btnText = this.status.isOpen ? this.option.button.closeText : this.option.button.openText;
+            this.$btn.text(btnText);
+            this.$ele.append(this.$btn);
+        };
+
+        Module.prototype.transitionCallback = function(val) {
+            var self = this;
+            if(self.option.transition && val !== this.status.isOpen) {
+                clearInterval(self.status.transitionVal);
+                self.status.transitionVal = setInterval(function() {
+                    self.option.whenTransition();
+                }, self.status.transitionTtimmer);
+            }
+        };
+
+        $.fn[ModuleName] = function (methods, options) {
+            return this.each(function() {
+                var $this = $(this);
+                var module = $this.data(ModuleName);
+                var opts = null;
+                if (module) {
+                    if (typeof methods === 'string' &&  typeof options === 'undefined') {
+                        module[methods]();
+                    } else {
+                        throw 'unsupported methods!';
+                    }
+                } else {
+                    opts = $.extend({}, Module.DEFAULTS, (typeof methods === 'object' && methods), (typeof options === 'object' && options));
+                    module = new Module(this, opts);
+                    $this.data(ModuleName, module);
+
+                    //初始化
+                    module.init();
+
+                    module.$btn.on('click', function() {
+                        module.toggle();
+                    });
+                }
+            });
+        };
+    })(jQuery);
+</script>
+<div class="banner">
+    <a class="wrap" href="javascript:;">
+        <img class="img" src="./imgs/1200x380.png" title="輸入廣告促銷說明文字" alt="輸入廣告促銷說明文字">
+    </a>
+</div>
+
+<script type="text/javascript">
+    $(function() {
+        $('.banner').banner({
+            openAtStart: false,
+            autoToggle: 666,
+            transition: true,
+            whenTransition: function() {
+                console.log('whenTransition');
+            }
+        });
+    });
+</script>
+</body>
+
+</html>
